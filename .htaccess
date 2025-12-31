@@ -1,0 +1,15 @@
+# Prevent directory listing
+Options -Indexes
+
+# Protect config file
+<Files "config.php">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Allow uploads folder
+<Directory "uploads">
+    Options -Indexes
+    Order allow,deny
+    Allow from all
+</Directory>

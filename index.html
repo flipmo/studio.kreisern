@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Picture Gallery</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f9fafb;
+            color: #111827;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: #6b7280;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background 0.2s;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .filters {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .filters-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .filters h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .btn-clear {
+            background: none;
+            border: none;
+            color: #2563eb;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+
+        .btn-clear:hover {
+            color: #1d4ed8;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .filter-group label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        .filter-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .filter-btn {
+            background: #f3f4f6;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            color: #374151;
+            transition: all 0.2s;
+        }
+
+        .filter-btn:hover {
+            background: #e5e7eb;
+        }
+
+        .filter-btn.active {
+            background: #2563eb;
+            color: white;
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .picture-card {
+            background: white;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: box-shadow 0.2s;
+            position: relative;
+        }
+
+        .picture-card:hover {
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .picture-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .picture-actions {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            display: flex;
+            gap: 0.5rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .picture-card:hover .picture-actions {
+            opacity: 1;
+        }
+
+        .icon-btn {
+            background: white;
+            border: none;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .icon-btn:hover {
+            background: #f3f4f6;
+        }
+
+        .icon-btn.delete:hover {
+            background: #fef2f2;
+        }
+
+        .picture-info {
+            padding: 1rem;
+        }
+
+        .picture-info .creator {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .picture-info .project {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 0.25rem;
+        }
+
+        .picture-info .date {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            margin-bottom: 0.5rem;
+        }
+
+        .picture-info .color-tag {
+            display: inline-block;
+            background: #f3f4f6;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            color: #374151;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .empty-state svg {
+            color: #9ca3af;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state p {
+            color: #6b7280;
+            margin-bottom: 1rem;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 0.75rem;
+            max-width: 500px;
+            width: 100%;
+            padding: 1.5rem;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h2 {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .btn-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6b7280;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="date"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+        }
+
+        .upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .upload-area:hover {
+            border-color: #2563eb;
+        }
+
+        .upload-area.has-image {
+            border: none;
+            padding: 0;
+        }
+
+        .preview-container {
+            position: relative;
+        }
+
+        .preview-container img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 0.5rem;
+        }
+
+        .btn-remove-image {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: white;
+            border: none;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn-secondary {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            background: white;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #f9fafb;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 4rem;
+            color: #6b7280;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .gallery {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>Picture Gallery</h1>
+                <p id="picture-count">Loading...</p>
+            </div>
+            <button class="btn-primary" onclick="openAddModal()">
+                <span>+</span> Add Picture
+            </button>
+        </div>
+
+        <div class="filters" id="filters" style="display: none;">
+            <div class="filters-header">
+                <h2>Filters</h2>
+                <button class="btn-clear" id="clear-filters" onclick="clearFilters()" style="display: none;">
+                    ✕ Clear all
+                </button>
+            </div>
+            <div class="filter-grid">
+                <div class="filter-group">
+                    <label>Creator</label>
+                    <div class="filter-buttons" id="filter-creator"></div>
+                </div>
+                <div class="filter-group">
+                    <label>Year</label>
+                    <div class="filter-buttons" id="filter-year"></div>
+                </div>
+                <div class="filter-group">
+                    <label>Project</label>
+                    <div class="filter-buttons" id="filter-project"></div>
+                </div>
+                <div class="filter-group">
+                    <label>Color</label>
+                    <div class="filter-buttons" id="filter-color"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="loading" class="loading">Loading pictures...</div>
+        <div id="gallery" class="gallery"></div>
+        <div id="empty-state" class="empty-state" style="display: none;"></div>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Add Picture</h2>
+                <button class="btn-close" onclick="closeModal()">&times;</button>
+            </div>
+            
+            <div class="form-group">
+                <label>Image *</label>
+                <div id="upload-area" class="upload-area" onclick="document.getElementById('file-input').click()">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <p>Click to upload image</p>
+                </div>
+                <input type="file" id="file-input" accept="image/*" style="display: none;" onchange="handleImageSelect(event)">
+            </div>
+
+            <div class="form-group">
+                <label>Creator *</label>
+                <input type="text" id="input-creator" required>
+            </div>
+
+            <div class="form-group">
+                <label>Date *</label>
+                <input type="date" id="input-date" required>
+            </div>
+
+            <div class="form-group">
+                <label>Project *</label>
+                <input type="text" id="input-project" required>
+            </div>
+
+            <div class="form-group">
+                <label>Color (optional)</label>
+                <input type="text" id="input-color" placeholder="e.g., blue, red, green">
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn-primary" onclick="savePicture()">
+                    <span id="save-text">Add</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'api/'; // Adjust if your API is in a different folder
+        let pictures = [];
+        let filters = { creator: null, year: null, project: null, color: null };
+        let editingId = null;
+        let selectedFile = null;
+
+        // Load pictures on page load
+        window.addEventListener('DOMContentLoaded', loadPictures);
+
+        async function loadPictures() {
+            try {
+                const response = await fetch(API_BASE + 'get_pictures.php');
+                pictures = await response.json();
+                renderGallery();
+                renderFilters();
+                updateCount();
+                document.getElementById('loading').style.display = 'none';
+            } catch (error) {
+                console.error('Error loading pictures:', error);
+                document.getElementById('loading').innerHTML = 'Error loading pictures. Please refresh the page.';
+            }
+        }
+
+        function renderGallery() {
+            const gallery = document.getElementById('gallery');
+            const emptyState = document.getElementById('empty-state');
+            const filtersSection = document.getElementById('filters');
+            
+            const filtered = getFilteredPictures();
+
+            if (pictures.length === 0) {
+                gallery.style.display = 'none';
+                filtersSection.style.display = 'none';
+                emptyState.style.display = 'block';
+                emptyState.innerHTML = `
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline;">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <p>No pictures yet. Add your first picture to get started!</p>
+                    <button class="btn-primary" onclick="openAddModal()">+ Add Picture</button>
+                `;
+                return;
+            }
+
+            filtersSection.style.display = 'block';
+
+            if (filtered.length === 0) {
+                gallery.style.display = 'none';
+                emptyState.style.display = 'block';
+                emptyState.innerHTML = '<p>No pictures match your filters</p>';
+                return;
+            }
+
+            gallery.style.display = 'grid';
+            emptyState.style.display = 'none';
+
+            gallery.innerHTML = filtered.map(pic => `
+                <div class="picture-card">
+                    <img src="${pic.url}" alt="${pic.creator} - ${pic.project}">
+                    <div class="picture-actions">
+                        <button class="icon-btn" onclick="editPicture(${pic.id})">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                        </button>
+                        <button class="icon-btn delete" onclick="deletePicture(${pic.id})">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="picture-info">
+                        <div class="creator">${pic.creator}</div>
+                        <div class="project">${pic.project}</div>
+                        <div class="date">${pic.date}</div>
+                        ${pic.color ? `<span class="color-tag">${pic.color}</span>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderFilters() {
+            if (pictures.length === 0) return;
+
+            const creators = [...new Set(pictures.map(p => p.creator))].sort();
+            const years = [...new Set(pictures.map(p => p.date.split('-')[0]))].sort().reverse();
+            const projects = [...new Set(pictures.map(p => p.project))].sort();
+            const colors = [...new Set(pictures.map(p => p.color).filter(Boolean))].sort();
+
+            document.getElementById('filter-creator').innerHTML = creators.map(c => 
+                `<button class="filter-btn ${filters.creator === c ? 'active' : ''}" onclick="toggleFilter('creator', '${c}')">${c}</button>`
+            ).join('');
+
+            document.getElementById('filter-year').innerHTML = years.map(y => 
+                `<button class="filter-btn ${filters.year === y ? 'active' : ''}" onclick="toggleFilter('year', '${y}')">${y}</button>`
+            ).join('');
+
+            document.getElementById('filter-project').innerHTML = projects.map(p => 
+                `<button class="filter-btn ${filters.project === p ? 'active' : ''}" onclick="toggleFilter('project', '${p}')">${p}</button>`
+            ).join('');
+
+            document.getElementById('filter-color').innerHTML = colors.map(c => 
+                `<button class="filter-btn ${filters.color === c ? 'active' : ''}" onclick="toggleFilter('color', '${c}')">${c}</button>`
+            ).join('');
+
+            updateClearButton();
+        }
+
+        function toggleFilter(category, value) {
+            filters[category] = filters[category] === value ? null : value;
+            renderGallery();
+            renderFilters();
+            updateCount();
+        }
+
+        function clearFilters() {
+            filters = { creator: null, year: null, project: null, color: null };
+            renderGallery();
+            renderFilters();
+            updateCount();
+        }
+
+        function updateClearButton() {
+            const hasActiveFilters = Object.values(filters).some(f => f !== null);
+            document.getElementById('clear-filters').style.display = hasActiveFilters ? 'block' : 'none';
+        }
+
+        function getFilteredPictures() {
+            return pictures.filter(pic => {
+                if (filters.creator && pic.creator !== filters.creator) return false;
+                if (filters.year && pic.date.split('-')[0] !== filters.year) return false;
+                if (filters.project && pic.project !== filters.project) return false;
+                if (filters.color && pic.color !== filters.color) return false;
+                return true;
+            });
+        }
+
+        function updateCount() {
+            const filtered = getFilteredPictures();
+            document.getElementById('picture-count').textContent = 
+                `Showing ${filtered.length} of ${pictures.length} pictures`;
+        }
+
+        function openAddModal() {
+            editingId = null;
+            selectedFile = null;
+            document.getElementById('modal-title').textContent = 'Add Picture';
+            document.getElementById('save-text').textContent = 'Add';
+            document.getElementById('input-creator').value = '';
+            document.getElementById('input-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('input-project').value = '';
+            document.getElementById('input-color').value = '';
+            document.getElementById('upload-area').className = 'upload-area';
+            document.getElementById('upload-area').innerHTML = `
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <p>Click to upload image</p>
+            `;
+            document.getElementById('modal').classList.add('show');
+        }
+
+        function editPicture(id) {
+            const picture = pictures.find(p => p.id === id);
+            if (!picture) return;
+
+            editingId = id;
+            selectedFile = null;
+            document.getElementById('modal-title').textContent = 'Edit Picture';
+            document.getElementById('save-text').textContent = 'Update';
+            document.getElementById('input-creator').value = picture.creator;
+            document.getElementById('input-date').value = picture.date;
+            document.getElementById('input-project').value = picture.project;
+            document.getElementById('input-color').value = picture.color || '';
+            
+            const uploadArea = document.getElementById('upload-area');
+            uploadArea.className = 'upload-area has-image';
+            uploadArea.innerHTML = `
+                <div class="preview-container">
+                    <img src="${picture.url}" alt="Current image">
+                    <button class="btn-remove-image" onclick="event.stopPropagation(); removeImage()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                    </button>
+                </div>
+            `;
+            
+            document.getElementById('modal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('show');
+        }
+
+        function handleImageSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            selectedFile = file;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const uploadArea = document.getElementById('upload-area');
+                uploadArea.className = 'upload-area has-image';
+                uploadArea.innerHTML = `
+                    <div class="preview-container">
+                        <img src="${e.target.result}" alt="Preview">
+                        <button class="btn-remove-image" onclick="event.stopPropagation(); removeImage()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                        </button>
+                    </div>
+                `;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeImage() {
+            selectedFile = null;
+            const uploadArea = document.getElementById('upload-area');
+            uploadArea.className = 'upload-area';
+            uploadArea.innerHTML = `
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <p>Click to upload image</p>
+            `;
+            document.getElementById('file-input').value = '';
+        }
+
+        async function savePicture() {
+            const creator = document.getElementById('input-creator').value.trim();
+            const date = document.getElementById('input-date').value;
+            const project = document.getElementById('input-project').value.trim();
+            const color = document.getElementById('input-color').value.trim();
+
+            if (!creator || !date || !project) {
+                alert('Please fill in all required fields (Creator, Date, Project)');
+                return;
+            }
+
+            if (!editingId && !selectedFile) {
+                alert('Please select an image');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('creator', creator);
+            formData.append('date', date);
+            formData.append('project', project);
+            formData.append('color', color);
+
+            if (selectedFile) {
+                formData.append('image', selectedFile);
+            }
+
+            try {
+                const url = editingId 
+                    ? API_BASE + 'update_picture.php' 
+                    : API_BASE + 'add_picture.php';
+                
+                if (editingId) {
+                    formData.append('id', editingId);
+                }
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                
+                if (result.success || result.id) {
+                    closeModal();
+                    await loadPictures();
+                } else {
+                    alert('Error: ' + (result.error || 'Failed to save picture'));
+                }
+            } catch (error) {
+                console.error('Error saving picture:', error);
+                alert('Error saving picture. Please try again.');
+            }
+        }
+
+        async function deletePicture(id) {
+            if (!confirm('Are you sure you want to delete this picture?')) return;
+
+            try {
+                const response = await fetch(API_BASE + 'delete_picture.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    await loadPictures();
+                } else {
+                    alert('Error: ' + (result.error || 'Failed to delete picture'));
+                }
+            } catch (error) {
+                console.error('Error deleting picture:', error);
+                alert('Error deleting picture. Please try again.');
+            }
+        }
+    </script>
+</body>
+</html>
