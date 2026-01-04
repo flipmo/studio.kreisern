@@ -1,15 +1,15 @@
+# Basic Authentication - MUST BE AT THE TOP
+AuthType Basic
+AuthName "Studio - Restricted Access"
+AuthUserFile /home/priv/.htpasswd_studio
+Require valid-user
+
 # Prevent directory listing
 Options -Indexes
 
-# Protect config file
-<Files "config.php">
-    Order allow,deny
-    Deny from all
-</Files>
-
-# Allow uploads folder
-<Directory "uploads">
-    Options -Indexes
+# Don't block uploads folder from being served
+<FilesMatch "\.(jpg|jpeg|png|gif|webp)$">
     Order allow,deny
     Allow from all
-</Directory>
+    Satisfy any
+</FilesMatch>
